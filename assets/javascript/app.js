@@ -32,16 +32,18 @@ function addPlayerToDatabase(userName) {
 		if(!snapshot.hasChildren()) {
 			// Add user as player 1
 			database.ref('/players').child('1').set(newPlayer);
+
+			$('#player-value').text(userName + ' you are player 1');
 		}
 		else if(snapshot.hasChild('1') && !snapshot.hasChild('2')) {
 			// Add user as player 2
 			database.ref('/players').child('2').set(newPlayer);
+
+			$('#player-value').text(userName + ' you are player 2!');
 		}
 		else {
 			// Two players already exist in database
-			return false;
+			$('#player-value').text('Enough players have joined the game.');
 		}
-	});
-
-	
+	});	
 }
