@@ -11,3 +11,37 @@ var config = {
 firebase.initializeApp(config);
 
 var database = firebase.database();
+
+// Listeners
+$('#start-btn').on('click', function() {
+	var userName = $('#user-name-input').val().trim();
+
+	addPlayerToDatabase(userName);
+});
+
+function addPlayerToDatabase(userName) {
+	database.ref('/players').once('value', function(snapshot) {
+		var newPlayer = {
+			name: userName,
+			wins: 0,
+			losses: 0,
+		};
+
+		console.log(snapshot.hasChild('1'));
+
+		if(!snapshot.hasChildren()) {
+			// Add user as player 1
+			database.ref('/players').child('1').set(newPlayer);
+		}
+		else if(snapshot.hasChild('1') && !snapshot.hasChild('2')) {
+			// Add user as player 2
+			database.ref('/players').child('2').set(newPlayer);
+		}
+		else {
+			// Two players already exist in database
+			return false;
+		}
+	});
+
+	
+}
