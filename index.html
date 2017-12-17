@@ -21,7 +21,7 @@
 	<script src="https://www.gstatic.com/firebasejs/4.8.0/firebase.js"></script>
 </head>
 <body>
-	<div class="row">
+	<div id="user-name-container' class="row">
 		<div class="col-md-2"></div>
 		<div class="col-md-8">
 			<input type="text" id="user-name-input"/>
@@ -29,6 +29,22 @@
 			<br>
 			<br>
 			<span id="player-value"></span>
+		</div>
+		<div class="col-md-2"></div>
+	</div>
+
+	<br>
+	<br>
+
+	<div class="row">
+		<div class="col-md-2"></div>
+		<div class="col-md-8">
+			<img id="player-selection" src="assets/images/paper.png" alt="paper image"/>
+			<br>
+			<br>
+			<button id="scroll-left" class="btn btn-primary btn-med"><<</button>
+			<button id="scroll-right" class="btn btn-primary btn-med">>></button>
+			<button id="select-btn" class="btn btn-primary btn-med">Select</button>
 		</div>
 		<div class="col-md-2"></div>
 	</div>

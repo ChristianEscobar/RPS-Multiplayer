@@ -12,11 +12,41 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
+var rpsImages = ['./assets/images/rock.png','./assets/images/paper.png','./assets/images/scissors.png'];
+
+var rpsImagesPos = 1;
+
 // Listeners
 $('#start-btn').on('click', function() {
 	var userName = $('#user-name-input').val().trim();
 
 	addPlayerToDatabase(userName);
+});
+
+$('#scroll-left').on('click', function() {
+	rpsImagesPos--;
+
+	if(rpsImagesPos < 0) {
+		rpsImagesPos = 2;
+	}
+
+	var imageSrc = rpsImages[rpsImagesPos];
+
+	$('#player-selection').attr('src', imageSrc);
+
+});
+
+$('#scroll-right').on('click', function() {
+	rpsImagesPos++;
+
+	if(rpsImagesPos > 2) {
+		rpsImagesPos = 0;
+	}
+
+	var imageSrc = rpsImages[rpsImagesPos];
+
+	$('#player-selection').attr('src', imageSrc);
+
 });
 
 function addPlayerToDatabase(userName) {
