@@ -1,0 +1,21 @@
+.panel {
+	width: 400px;
+	height: 400px;
+}
+
+.panel-heading {
+	text-align: center;
+}
+
+.panel-footer {
+	text-align: center;
+}
+
+.panel-body {
+	text-align: center;
+}
+
+#player-message-continer {
+	text-align: center;
+}
+
