@@ -10,6 +10,7 @@ var config = {
 
 firebase.initializeApp(config);
 
+// Globals //
 var database = firebase.database();
 
 var rpsImages = ['./assets/images/rock.png','./assets/images/paper.png','./assets/images/scissors.png'];
@@ -17,6 +18,9 @@ var rpsImages = ['./assets/images/rock.png','./assets/images/paper.png','./asset
 var rpsImagesPos = 1;
 
 var currentPlayer = '0';
+
+var currentTurn = 0;
+// End Globals //
 
 var selectionsDisplayed = false;
 
@@ -28,6 +32,7 @@ $('#play-btn').on('click', function() {
 });
 
 // Listens to the database for new children on the /players node.
+// This will be used to populate the opposing players panel at prior to game start.
 database.ref('/players').on('child_added', function(snapshot) {
 	var newPlayer = snapshot.ref.key;
 
@@ -35,56 +40,66 @@ database.ref('/players').on('child_added', function(snapshot) {
 	var playerWins = snapshot.val().wins;
 	var playerLosses = snapshot.val().losses;
 
-	setupPlayerPanel(newPlayerName, newPlayer, playerWins, playerLosses);
+	updatePlayerPanelHeaderAndFooter(newPlayerName, newPlayer, playerWins, playerLosses);
 });
 
-// Listens to the database for any value changes.  
-// Only the the turn property is dealt with.
-database.ref().on('value', function(snapshot){
-	if(snapshot.val() !== null) {
-		var playerTurn = snapshot.val().turn;
+// Listens to the database for children added.
+// Used to handle turn value 
+database.ref().on('child_added', function(snapshot){
+	if(snapshot.key === 'turn') {
+		checkWhoseTurnItIs(snapshot.val());
+	}
+});
 
-		if(playerTurn === currentPlayer) {
-			setTurnMessage('It\'s Your Turn!');
+// Listens to the database for children changed.
+// Used to handle selection of rock/paper/scissors
+database.ref('/players').on('child_changed', function(snapshot) {
+	updateTurnValue();
 
-			if(!selectionsDisplayed) {
-				displaySelections();
-			}
+	checkWhoseTurnItIs(currentTurn);
+});
+
+$(document).on('click', '.scroll-btn', scrollImages);
+
+$(document).on('click', '.select-btn', selectionMade);
+
+function scrollImages() {
+	var btnType = $(this).attr('btn-type');
+
+	if(btnType === 'scroll-left') {
+		rpsImagesPos--;
+
+		if(rpsImagesPos < 0) {
+ 			rpsImagesPos = 2;
+ 		}
+	} else {
+		rpsImagesPos++;
+
+		if(rpsImagesPos > 2) {
+			rpsImagesPos = 0;
 		}
 	}
-});
-
-// Listens for left scroll button clicks.
-$('#scroll-left').on('click', function() {
-	console.log('clicked');
-
-	rpsImagesPos--;
-
-	if(rpsImagesPos < 0) {
-		rpsImagesPos = 2;
-	}
 
 	var imageSrc = rpsImages[rpsImagesPos];
 
 	$('#selection-img').attr('src', imageSrc);
+	$('#selection-img').attr('selection', getChoiceValue());
+}
 
-});
+function selectionMade() {
+	// Store player selection in database
+	var choice = {
+		choice: $('#selection-img').attr('selection'),
+	};
 
-// Listens for right scroll button clicks.
-$('#scroll-right').on('click', function() {
-	console.log('clicked');
+	updateDatabaseNode('/players/' + currentPlayer, choice);
+}
 
-	rpsImagesPos++;
-
-	if(rpsImagesPos > 2) {
-		rpsImagesPos = 0;
-	}
-
-	var imageSrc = rpsImages[rpsImagesPos];
-
-	$('#selection-img').attr('src', imageSrc);
-
-});
+function setTurnMessageWaitingForPlayer(player) {
+	database.ref('/players/' + player).once('value').then(function(snapshot) {
+			setTurnMessage('Waiting for ' + snapshot.val().name + ' to choose...');
+		});
+}
 
 // Adds a new player to the database
 function addNewPlayer(userName) {
@@ -97,40 +112,118 @@ function addNewPlayer(userName) {
 
 		if(!snapshot.hasChildren()) {
 			// Add user as player 1
-			database.ref('/players').child('1').set(newPlayer);
+			addDatabaseNode('/players', '1', newPlayer);
 
 			currentPlayer = '1';
 
 			setPlayerMessage('You are Player ' + currentPlayer);
+
+			// Setup player panel
+			updatePlayerPanelHeaderAndFooter(userName, currentPlayer, 0, 0);
+
+			// Hider user name input
+			$('#user-name-container').css('display', 'none');
 		}
 		else if(snapshot.hasChild('1') && !snapshot.hasChild('2')) {
 			// Add user as player 2
-			database.ref('/players').child('2').set(newPlayer);
+			addDatabaseNode('/players', '2', newPlayer);
 
 			currentPlayer = '2';
 
 			setPlayerMessage('You are Player ' + currentPlayer);
 
-			// The arrival of player 2 triggers the insertion of the turn node in the database
-			var turn = {
-				turn: '1',
-			}
+			// Setup player panel
+			updatePlayerPanelHeaderAndFooter(userName, currentPlayer, 0, 0);
 
-			database.ref().update(turn);
+			// Hider user name input
+			$('#user-name-container').css('display', 'none');
+
+			// The arrival of player 2 triggers the insertion of the turn node in the database
+			updateTurnValue();
 		}
 		else {
 			// Two players already exist in database
 			setPlayerMessage('Enough players have joined the game.');
 		}
-
-		if(currentPlayer === '1' || currentPlayer === '2') {
-			// Setup player panel
-			setupPlayerPanel(userName, currentPlayer, 0, 0);
-
-			// Hider user name input
-			$('#user-name-container').css('display', 'none');
-		}
 	});	
+}
+
+function updateTurnValue() {
+	currentTurn++;
+
+	var turnObj = {
+		turn: currentTurn,
+	}
+
+	updateDatabaseNode('', turnObj);
+}
+
+function checkWhoseTurnItIs(currentTurn) {
+	console.log('currentTurn', currentTurn);
+
+	// There are only 3 turns per game:
+	// 1. Player 1 is choosing and Player 2 is waiting
+	// 2. Player 1 has chosen and Player 2 is choosing
+	// 3. Both players have chosen, determine winner
+	if(currentTurn === 1) {
+		// Player 1 is choosing while Player 2 is waiting
+		if(currentPlayer === '1') {
+			setTurnMessage('It\'s Your Turn!');
+
+			updatePlayerPanelBody(currentPlayer, true, '');
+
+			// Update Player 2 panel to waiting
+			updatePlayerPanelBody('2', false, 'Waiting for your selection...');
+
+		} else {
+			// You are Player 2, so you have to wait
+			setTurnMessageWaitingForPlayer('1');
+
+			// Update Player 1 panel to selecting
+			updatePlayerPanelBody('1', false, 'Selecting...');
+		}
+	}
+
+	// if(playerTurn.toString() === currentPlayer) {
+	// 	setTurnMessage('It\'s Your Turn!');
+
+	// 	updatePlayerPanelBody(currentPlayer, true, '');
+
+	// 	if(currentPlayer === '1') {
+	// 		updatePlayerPanelBody('2', false, 'Waiting for your selection...');
+	// 	} else {
+	// 		updatePlayerPanelBody('1', false, 'Waiting for your selection...');
+	// 	}
+	// } else {
+	// 	if(currentPlayer === '1')
+	// 	{
+	// 		setWaitingForPlayerMessage('2');
+
+	// 		updatePlayerPanelBody('2', false, 'Selecting...');
+	// 	} else {
+	// 		setWaitingForPlayerMessage('1');
+
+	// 		updatePlayerPanelBody('1', false, 'Selecting...');
+	// 	}	
+	// }
+}
+
+// Updates a specific path in the database with the specified data object
+function updateDatabaseNode(refPath, dataObject) {
+	if(refPath.length === 0) {
+		database.ref().update(dataObject);
+	} else {
+		database.ref(refPath).update(dataObject);
+	}
+}
+
+// Adds the specified data object into the database to the specified path
+function addDatabaseNode(refPath, newChildPath, dataObject) {
+	if(refPath.length === 0) {
+		database.ref().child(newChildPath).set(dataObject);
+	} else {
+		database.ref(refPath).child(newChildPath).set(dataObject);
+	}
 }
 
 // Sets messages to the player messages section
@@ -144,7 +237,7 @@ function setTurnMessage(message) {
 }
 
 // Sets up the current players selection panel
-function setupPlayerPanel(userName, player, wins, losses) {
+function updatePlayerPanelHeaderAndFooter(userName, player, wins, losses) {
 	var panelTitleId = '#player' + player + '-panel-title';
 	var panelBodyId = '#player' + player + '-panel-body';
 	var panelFooterId = '#player' + player + '-panel-footer';
@@ -156,26 +249,54 @@ function setupPlayerPanel(userName, player, wins, losses) {
 	$(panelFooterId).text('Wins: ' + wins + ' Losses:  ' + losses);
 }
 
-function displaySelections() {
-	var panelBodyId = '#player' + currentPlayer + '-panel-body';
+function getChoiceValue() {
+	switch(rpsImagesPos) {
+		case 0: 
+			return 'rock';
+		case 1:
+			return 'paper';
+		case 2:
+			return 'scissors';
+		default:
+			console.log('getChoiceValue():  Unhandled image position value encountered ' + rpsImagesPos);
+	}
+}
 
-	var img = $('<img/>');
-	img.attr('src', rpsImages[rpsImagesPos]);
-	img.attr('alt', 'Player selection');
-	img.attr('id', 'selection-img');
-	img.addClass('img-responsive');
+function updatePlayerPanelBody(player, displayImages, message) {
+	var panelBodyId = '#player' + player + '-panel-body';
 
-	$(panelBodyId).append(img);
+	$(panelBodyId).empty();
 
-	var leftBtn = $('<button></button>');
-	leftBtn.attr('id', 'scroll-left');
-	leftBtn.addClass('glyphicon glyphicon-arrow-left btn btn-primary btn-med');
+	if(displayImages) {
+		var img = $('<img/>');
+		img.attr('src', rpsImages[rpsImagesPos]);
+		img.attr('alt', 'Player selection');
+		img.attr('id', 'selection-img');
+		img.attr('selection', getChoiceValue());
+		img.addClass('img-responsive');
 
-	$(panelBodyId).append(leftBtn);
+		$(panelBodyId).append(img);
 
-	var rightBtn = $('<button></button>');
-	rightBtn.attr('id', 'scroll-right');
-	rightBtn.addClass('glyphicon glyphicon-arrow-right btn btn-primary btn-med');
+		var leftBtn = $('<button></button>');
+		//leftBtn.attr('id', 'scroll-left');
+		leftBtn.attr('btn-type', 'scroll-left')
+		leftBtn.addClass('glyphicon glyphicon-arrow-left btn btn-primary btn-med scroll-btn');
 
-	$(panelBodyId).append(rightBtn);	
+		$(panelBodyId).append(leftBtn);
+
+		var rightBtn = $('<button></button>');
+		//rightBtn.attr('id', 'scroll-right');
+		rightBtn.attr('btn-type', 'scroll-right')
+		rightBtn.addClass('glyphicon glyphicon-arrow-right btn btn-primary btn-med scroll-btn');
+
+		$(panelBodyId).append(rightBtn);
+
+		var chooseBtn = $('<button></button>');
+		chooseBtn.addClass('btn btn-primary btn-med select-btn');
+		chooseBtn.text('Select');
+
+		$(panelBodyId).append(chooseBtn);
+	} else {
+		$(panelBodyId).text(message);
+	}	
 }
