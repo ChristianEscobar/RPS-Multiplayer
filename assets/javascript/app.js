@@ -207,6 +207,9 @@ function checkWhoseTurnItIs(currentTurn) {
 			// Update Player 1 panel to waiting
 			updatePlayerPanelBody('1', false, false, '', 'Waiting for your selection...');
 		}
+	} else if(currentTurn === '3') {
+		// Determine winner
+		
 	}
 }
 
