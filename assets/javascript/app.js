@@ -93,6 +93,13 @@ function selectionMade() {
 	};
 
 	updateDatabaseNode('/players/' + currentPlayer, choice);
+
+	// Remove buttons from panel body
+	updatePlayerPanelBody(currentPlayer, false, true, $('#selection-img').attr('src'), '');
+
+	updateTurnValue();
+
+	checkWhoseTurnItIs(currentTurn);
 }
 
 function setTurnMessageWaitingForPlayer(player) {
@@ -170,42 +177,37 @@ function checkWhoseTurnItIs(currentTurn) {
 		if(currentPlayer === '1') {
 			setTurnMessage('It\'s Your Turn!');
 
-			updatePlayerPanelBody(currentPlayer, true, '');
+			// Display scrollable images
+			updatePlayerPanelBody(currentPlayer, true, false, '', '');
 
 			// Update Player 2 panel to waiting
-			updatePlayerPanelBody('2', false, 'Waiting for your selection...');
+			updatePlayerPanelBody('2', false, false, '', 'Waiting for your selection...');
 
 		} else {
 			// You are Player 2, so you have to wait
 			setTurnMessageWaitingForPlayer('1');
 
 			// Update Player 1 panel to selecting
-			updatePlayerPanelBody('1', false, 'Selecting...');
+			updatePlayerPanelBody('1', false, false, '', 'Selecting...');
+		}
+	} else if(currentTurn === 2) {
+		// Player 1 has chosen and is now waiting, Player 2 is choosing
+		if(currentPlayer === '1') {
+			// Waiting for Player 2
+			setTurnMessageWaitingForPlayer('2');
+
+			// Update Player 2 panel to selecting
+			updatePlayerPanelBody('2', false, false, '', 'Selecting...');
+		} else {
+			setTurnMessage('It\'s Your Turn!');
+
+			// Display scrollable images
+			updatePlayerPanelBody(currentPlayer, true, false, '', '');
+
+			// Update Player 1 panel to waiting
+			updatePlayerPanelBody('1', false, false, '', 'Waiting for your selection...');
 		}
 	}
-
-	// if(playerTurn.toString() === currentPlayer) {
-	// 	setTurnMessage('It\'s Your Turn!');
-
-	// 	updatePlayerPanelBody(currentPlayer, true, '');
-
-	// 	if(currentPlayer === '1') {
-	// 		updatePlayerPanelBody('2', false, 'Waiting for your selection...');
-	// 	} else {
-	// 		updatePlayerPanelBody('1', false, 'Waiting for your selection...');
-	// 	}
-	// } else {
-	// 	if(currentPlayer === '1')
-	// 	{
-	// 		setWaitingForPlayerMessage('2');
-
-	// 		updatePlayerPanelBody('2', false, 'Selecting...');
-	// 	} else {
-	// 		setWaitingForPlayerMessage('1');
-
-	// 		updatePlayerPanelBody('1', false, 'Selecting...');
-	// 	}	
-	// }
 }
 
 // Updates a specific path in the database with the specified data object
@@ -262,12 +264,12 @@ function getChoiceValue() {
 	}
 }
 
-function updatePlayerPanelBody(player, displayImages, message) {
+function updatePlayerPanelBody(player, displayScrollableImages, displayStaticImage, imageUrl, message) {
 	var panelBodyId = '#player' + player + '-panel-body';
 
 	$(panelBodyId).empty();
 
-	if(displayImages) {
+	if(displayScrollableImages) {
 		var img = $('<img/>');
 		img.attr('src', rpsImages[rpsImagesPos]);
 		img.attr('alt', 'Player selection');
@@ -296,6 +298,14 @@ function updatePlayerPanelBody(player, displayImages, message) {
 		chooseBtn.text('Select');
 
 		$(panelBodyId).append(chooseBtn);
+	} else if(displayStaticImage) {
+		var img = $('<img/>');
+		img.attr('src', imageUrl);
+		img.attr('alt', 'Player selection');
+		img.attr('id', 'selection-img');
+		img.addClass('img-responsive');
+
+		$(panelBodyId).append(img);
 	} else {
 		$(panelBodyId).text(message);
 	}	
