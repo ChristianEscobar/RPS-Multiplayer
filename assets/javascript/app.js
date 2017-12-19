@@ -30,7 +30,6 @@ $('#play-btn').on('click', function() {
 });
 
 // Listens to the database for new children on the /players node.
-// This will be used to populate the opposing players panel at prior to game start.
 database.ref('/players').on('child_added', function(snapshot) {
 	var newPlayer = snapshot.ref.key;
 
@@ -41,7 +40,18 @@ database.ref('/players').on('child_added', function(snapshot) {
 	updatePlayerPanelHeaderAndFooter(newPlayerName, newPlayer, playerWins, playerLosses);
 });
 
-// Listens to the database for children added.
+// Listens to the database for changes on children of the /players node
+database.ref('/players').on('child_changed', function(snapshot) {
+	var player = snapshot.ref.key;
+
+	var playerName = snapshot.val().name;
+	var playerWins = snapshot.val().wins;
+	var playerLosses = snapshot.val().losses;
+
+	updatePlayerPanelHeaderAndFooter(playerName, player, playerWins, playerLosses);
+});
+
+// Listens to the database for children added to the root
 // Used to handle turn value 
 database.ref().on('child_added', function(snapshot){
 	if(snapshot.key === 'turn') {
@@ -57,10 +67,13 @@ database.ref().on('child_changed', function(snapshot) {
 	}
 });
 
+// Listens to scroll button clicks
 $(document).on('click', '.scroll-btn', scrollImages);
 
+// Listens to select button clicks
 $(document).on('click', '.select-btn', selectionMade);
 
+// Scrolls selections left or right
 function scrollImages() {
 	var btnType = $(this).attr('btn-type');
 
@@ -84,6 +97,7 @@ function scrollImages() {
 	$('#selection-img').attr('selection', getChoiceValue());
 }
 
+// Contains logic used when user has made a selection
 function selectionMade() {
 	// Store player selection in database
 	var choice = {
@@ -97,8 +111,6 @@ function selectionMade() {
 
 	// Player has made a selection, so the turn value has to be updated.
 	updateTurnValue();
-
-	//checkWhoseTurnItIs();
 }
 
 // Adds a new player to the database
@@ -149,6 +161,7 @@ function addNewPlayer(userName) {
 	});	
 }
 
+// Updates the turn value in the database
 function updateTurnValue() {
 	database.ref().once('value')
 		.then(function(snapshot) {
@@ -174,6 +187,39 @@ function updateTurnValue() {
 	});
 }
 
+// Updates the wins value in the database for the specified player
+function updatePlayerWins(player) {
+	database.ref('/players').once('value')
+		.then(function(snapshot) {
+			var playerObj = snapshot.child(player).val();
+
+			var currentWins = playerObj.wins;
+
+			var winsObj = {
+				wins: (currentWins + 1),
+			};
+
+			updateDatabaseNode('/players/' + player, winsObj);
+		});
+}
+
+// Updates the losses value in the database for the specified player
+function updatePlayerLosses(player) {
+	database.ref('/players').once('value')
+		.then(function(snapshot) {
+			var playerObj = snapshot.child(player).val();
+
+			var currentLosses = playerObj.losses;
+
+			var lossesObj = {
+				losses: (currentLosses + 1),
+			};
+
+			updateDatabaseNode('/players/' + player, lossesObj);
+		});
+}
+
+// Checks and determines game logic based on turn value
 function checkWhoseTurnItIs() {
 	// There are only 3 turns per game:
 	// 1. Player 1 is choosing and Player 2 is waiting
@@ -185,6 +231,9 @@ function checkWhoseTurnItIs() {
 			var player2Obj = snapshot.child('/players/2').val();
 
 			if(snapshot.child('turn').val() === 1) {
+				// Turn 1 means we are starting a new game, so let's clear elements 
+				// just in case they are still populated from a previous game.
+
 				// Player 1 is choosing while Player 2 is waiting
 				if(currentPlayer === '1') {
 					setTurnMessage('It\'s Your Turn!');
@@ -199,9 +248,11 @@ function checkWhoseTurnItIs() {
 					// You are Player 2, so you have to wait for Player 1
 					setTurnMessage('Waiting for ' + player1Obj.name + ' to choose...');
 
-
 					// Update Player 1 panel to selecting
 					updatePlayerPanelBody('1', false, false, '', 'Selecting...');
+
+					// Clear Player 2 panel body
+					updatePlayerPanelBody('2', false, false, '', '');
 				}
 			} else if(snapshot.child('turn').val() === 2) {
 				// Player 1 has chosen and is now waiting, Player 2 is choosing
@@ -223,10 +274,13 @@ function checkWhoseTurnItIs() {
 			} else if(snapshot.child('turn').val() === 3) {
 				// Determine winner
 				determineWinner();
+
+				startNewGameCountdown();
 			}
 		});
 }
 
+// Determines the winner of the game
 function determineWinner() {
 	database.ref('/players').once('value')
 		.then(function(snapshot) {
@@ -267,22 +321,31 @@ function determineWinner() {
 			setTurnMessage('Awesome, you won!');
 
 			displayYouWinResult(); 
+
+			updatePlayerWins(currentPlayer);
 		} else {
 			if(currentPlayer === '1') {
 				setTurnMessage(player2Obj.name + ' has beat you.  Better luck next time.');	
 
 				displayYouWLoseResult();
+
+				updatePlayerLosses(currentPlayer);
 			} else if(currentPlayer === '2') {
 				setTurnMessage(player1Obj.name + ' has beat you.  Better luck next time.');
 
 				displayYouWLoseResult();
+
+				updatePlayerLosses(currentPlayer);
 			} else {
 				console.log('checkWhoseTurnItIs():  Unhandled currentPlayer value encoutered ' + currentPlayer);
+
+				return;
 			}		
 		}
 	});
 }
 
+// Checks if player 1 has won
 function hasPlayer1Won(player1Choice, player2Choice) {
 	if(player1Choice === 'rock' && player2Choice === 'scissors') {
 		return true;
@@ -295,6 +358,7 @@ function hasPlayer1Won(player1Choice, player2Choice) {
 	return false;
 }
 
+// Checks if player 2 has won
 function hasPlayer2Won(player1Choice, player2Choice) {
 	if(player2Choice === 'rock' && player1Choice === 'scissors') {
 		return true;
@@ -343,11 +407,12 @@ function updatePlayerPanelHeaderAndFooter(userName, player, wins, losses) {
 
 	$(panelTitleId).text(userName + ' - Player ' + player);
 
-	$(panelBodyId).empty();
+	//$(panelBodyId).empty();
 
 	$(panelFooterId).text('Wins: ' + wins + ' Losses:  ' + losses);
 }
 
+// Returns text string representing choice based on the images array position value
 function getChoiceValue() {
 	switch(rpsImagesPos) {
 		case 0: 
@@ -361,6 +426,7 @@ function getChoiceValue() {
 	}
 }
 
+// Returns the img url for the specified choice
 function getChoiceImageUrlBasedOnValue(choice) {
 	switch(choice) {
 		case 'rock' :
@@ -374,6 +440,7 @@ function getChoiceImageUrlBasedOnValue(choice) {
 	}
 }
 
+// Updates the body of the specifired players game panel
 function updatePlayerPanelBody(player, displayScrollableImages, displayStaticImage, imageUrl, message) {
 	var panelBodyId = '#player' + player + '-panel-body';
 
@@ -421,6 +488,7 @@ function updatePlayerPanelBody(player, displayScrollableImages, displayStaticIma
 	}	
 }
 
+// Displays the you win image to the results panel
 function displayYouWinResult() {
 	$('#results-panel-body').empty();
 
@@ -432,6 +500,7 @@ function displayYouWinResult() {
 	$('#results-panel-body').append(img);
 }
 
+// Displays the you lose image to the results panel
 function displayYouWLoseResult() {
 	$('#results-panel-body').empty();
 
@@ -441,4 +510,46 @@ function displayYouWLoseResult() {
 	img.addClass('img-responsive');
 
 	$('#results-panel-body').append(img);
+}
+
+// Sets up a new game with the same players
+function setupNewGame() {
+	// Reset turn value to 1
+	var turnObj = {
+		turn: 1,
+	};
+
+	updateDatabaseNode('', turnObj);
+
+	// Clear counter message
+	$('#new-game-countdown').empty();
+
+	// Clear results panel body
+	$('#results-panel-body').empty();
+}
+
+function startNewGameCountdown() {
+	var secondsRemaining = 5;
+
+	var intervalId = 0;
+
+	// Update counter display
+	$('#new-game-countdown').text('New game in ' + secondsRemaining);
+
+	clearInterval(intervalId);
+
+	var countdown = function(secsRemaining, intvlId) {
+		secondsRemaining--;
+
+		// Update counter display
+		$('#new-game-countdown').text('New game in ' + secondsRemaining);
+
+		if(secondsRemaining == 0) {
+			clearInterval(intervalId);
+
+			setupNewGame();
+		}
+	}
+
+	intervalId = setInterval(countdown, 1000, secondsRemaining, intervalId);
 }
