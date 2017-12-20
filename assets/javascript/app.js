@@ -22,7 +22,7 @@ var currentPlayer = '0';
 
 // Listens for chat send button clicks
 $('#chat-send').on('click', function(){
-	writeChatMessageToDatabase();
+	writeChatMessageToDatabase('');
 });
 
 // Listens for play button clicks for a new user.
@@ -116,6 +116,8 @@ $(document).on('click', '.select-btn', selectionMade);
 // Listener for refresh button
 $(window).on('beforeunload', function() {
 	// Refresh has been clicked which means player has left game
+
+	writeChatMessageToDatabase('has disconnected.');
 
 	// Delete the current player from the database
 	database.ref('/players/' + currentPlayer).remove();
@@ -622,11 +624,19 @@ function startNewGameCountdown() {
 	intervalId = setInterval(countdown, 1000, secondsRemaining, intervalId);
 }
 
-// Writes chat message to the database
-function writeChatMessageToDatabase() {
+// Writes chat message to the database.
+// If a message is not provided, the message will be read from the chat input text box.
+function writeChatMessageToDatabase(message) {
+	// Contains example of using bind!!!
 	database.ref().once('value')
 		.then(function(snapshot){
-			var chatMessage = $('#chat-input').val().trim();
+			var chatMessage = '';
+
+			if(this.message.length == 0) {
+				chatMessage = $('#chat-input').val().trim();
+			} else {
+				chatMessage = this.message;
+			}
 
 			var playerName = snapshot.child('/players/' + currentPlayer + '/name/').val();
 
@@ -657,7 +667,7 @@ function writeChatMessageToDatabase() {
 
 			// Clear chat input
 			$('#chat-input').val('');
-		});
+		}.bind({message: message}));
 }
 
 // Writes chate message stored in database to the chat window
