@@ -38,6 +38,8 @@ database.ref('/players').on('child_added', function(snapshot) {
 	var playerLosses = snapshot.val().losses;
 
 	updatePlayerPanelHeaderAndFooter(newPlayerName, newPlayer, playerWins, playerLosses);
+
+	updatePlayerPanelBody(newPlayer, false, false, '');
 });
 
 // Listens to the database for changes on children of the /players node
@@ -67,11 +69,46 @@ database.ref().on('child_changed', function(snapshot) {
 	}
 });
 
+// Listens to the database for children removed from the /players node
+database.ref('/players').on('child_removed', function(snapshot) {
+	// Remove the turn node
+	database.ref('/turn').remove();
+
+	// Clear counter message
+	$('#new-game-countdown').empty();
+
+	// Clear results panel body
+	$('#results-panel-body').empty();
+
+	setTurnMessage('');
+
+	if(currentPlayer === '1') {
+		updatePlayerPanelBody(currentPlayer, false, false, '');
+
+		// Reset the opposing player's panel
+		resetPlayerPanel('2');
+	} else if(currentPlayer === '2') {
+		updatePlayerPanelBody(currentPlayer, false, false, '');
+
+		resetPlayerPanel('1');
+	} else {
+		console.log('child_removed:  Unhandled currentPlayer value ' + currentPlayer);
+	}
+});
+
 // Listens to scroll button clicks
 $(document).on('click', '.scroll-btn', scrollImages);
 
 // Listens to select button clicks
 $(document).on('click', '.select-btn', selectionMade);
+
+// Listener for refresh button
+$(window).on('beforeunload', function() {
+	// Refresh has been clicked which means player has left game
+
+	// Delete the current player from the database
+	database.ref('/players/' + currentPlayer).remove();
+});
 
 // Scrolls selections left or right
 function scrollImages() {
@@ -134,7 +171,9 @@ function addNewPlayer(userName) {
 			// Setup player panel
 			updatePlayerPanelHeaderAndFooter(userName, currentPlayer, 0, 0);
 
-			// Hider user name input
+			updatePlayerPanelBody(currentPlayer, false, false, '');
+
+			// Hide user name input
 			$('#user-name-container').css('display', 'none');
 		}
 		else if(snapshot.hasChild('1') && !snapshot.hasChild('2')) {
@@ -410,6 +449,17 @@ function updatePlayerPanelHeaderAndFooter(userName, player, wins, losses) {
 	//$(panelBodyId).empty();
 
 	$(panelFooterId).text('Wins: ' + wins + ' Losses:  ' + losses);
+}
+
+// Resets the specified player panel
+function resetPlayerPanel(player) {
+	var panelTitleId = '#player' + player + '-panel-title';
+	var panelBodyId = '#player' + player + '-panel-body';
+	var panelFooterId = '#player' + player + '-panel-footer';
+
+	$(panelTitleId).empty();
+	$(panelBodyId).text('Waiting for Player ' + player);
+	$(panelFooterId).empty();
 }
 
 // Returns text string representing choice based on the images array position value
