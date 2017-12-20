@@ -1,6 +1,7 @@
-.panel {
+.panel-body {
 	width: 400px;
-	height: 400px;
+	height: 340px;
+	text-align: center;
 }
 
 .panel-heading {
@@ -11,19 +12,22 @@
 	text-align: center;
 }
 
-.panel-body {
-	text-align: center;
+.scroll-btn-group {
+	margin-right: 10px;
+	margin-top: 10px;
+}
+
+.rps-img {
+	margin-left: 60px;
 }
 
 #player-message-container {
 	text-align: center;
 }
 
-#results-panel {
-	text-align: center;
-}
-
 #results-panel-body {
+	width: 400px;
+	height: 420px;
 	text-align: center;
 }
 

@@ -527,26 +527,26 @@ function updatePlayerPanelBody(player, displayScrollableImages, displayStaticIma
 		img.attr('alt', 'Player selection');
 		img.attr('id', 'selection-img');
 		img.attr('selection', getChoiceValue());
-		img.addClass('img-responsive');
+		img.addClass('img-responsive rps-img');
 
 		$(panelBodyId).append(img);
 
 		var leftBtn = $('<button></button>');
 		//leftBtn.attr('id', 'scroll-left');
 		leftBtn.attr('btn-type', 'scroll-left')
-		leftBtn.addClass('glyphicon glyphicon-arrow-left btn btn-primary btn-med scroll-btn');
+		leftBtn.addClass('glyphicon glyphicon-arrow-left btn btn-primary btn-med scroll-btn scroll-btn-group');
 
 		$(panelBodyId).append(leftBtn);
 
 		var rightBtn = $('<button></button>');
 		//rightBtn.attr('id', 'scroll-right');
 		rightBtn.attr('btn-type', 'scroll-right')
-		rightBtn.addClass('glyphicon glyphicon-arrow-right btn btn-primary btn-med scroll-btn');
+		rightBtn.addClass('glyphicon glyphicon-arrow-right btn btn-primary btn-med scroll-btn scroll-btn-group');
 
 		$(panelBodyId).append(rightBtn);
 
 		var chooseBtn = $('<button></button>');
-		chooseBtn.addClass('btn btn-primary btn-med select-btn');
+		chooseBtn.addClass('btn btn-primary btn-med select-btn scroll-btn-group');
 		chooseBtn.text('Select');
 
 		$(panelBodyId).append(chooseBtn);
@@ -555,7 +555,7 @@ function updatePlayerPanelBody(player, displayScrollableImages, displayStaticIma
 		img.attr('src', imageUrl);
 		img.attr('alt', 'Player selection');
 		img.attr('id', 'selection-img');
-		img.addClass('img-responsive');
+		img.addClass('img-responsive rps-img');
 
 		$(panelBodyId).append(img);
 	} else {
