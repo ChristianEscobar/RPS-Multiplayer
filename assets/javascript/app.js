@@ -92,7 +92,9 @@ database.ref('/players').on('child_removed', function(snapshot) {
 
 		resetPlayerPanel('1');
 	} else {
-		console.log('child_removed:  Unhandled currentPlayer value ' + currentPlayer);
+		resetPlayerPanel('1');
+
+		resetPlayerPanel('2');
 	}
 });
 
