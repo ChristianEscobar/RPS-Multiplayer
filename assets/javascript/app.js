@@ -629,23 +629,30 @@ function writeChatMessageToDatabase() {
 			var chatMessage = $('#chat-input').val().trim();
 
 			var playerName = snapshot.child('/players/' + currentPlayer + '/name/').val();
+
+			var message = playerName + ': ' + chatMessage;
 			
-			if(snapshot.child('/chat/' + currentPlayer).exists()) {
+			if(snapshot.child('/chat/').exists()) {
 				// Overwrite message in existing node
+				var currentChatArray = snapshot.child('/chat/messages').val();
+
+				currentChatArray.push(message);
+
 				var messageObj = {
-					name: playerName,
-					message: chatMessage,
+					messages: currentChatArray,
 				};
 
-				updateDatabaseNode('/chat/' + currentPlayer, messageObj);
+				updateDatabaseNode('/chat/', messageObj);
 			} else {
-				// Create chat node
+				// Create chat array
+				var chatArray = [message];
+
+				// Create chat object to store the array
 				var messageObj = {
-					name: playerName,
-					message: chatMessage,
+					messages: chatArray,
 				};
 
-				addDatabaseNode('', '/chat/' + currentPlayer, messageObj);
+				addDatabaseNode('', '/chat/', messageObj);
 			}
 
 			// Clear chat input
@@ -655,10 +662,11 @@ function writeChatMessageToDatabase() {
 
 // Writes chate message stored in database to the chat window
 function writeChatMessageToChatWindow(snapshot) {
-	var key = Object.keys(snapshot.val())[0];
+	$('#chat-window').text('');
 
-	var playerName = snapshot.child('/' + key + '/name/').val();
-	var message = snapshot.child('/' + key + '/message/').val();
+	var currentChatArray = snapshot.child('/messages/').val();
 
-	$('#chat-window').append(playerName + ': ' + message + '\n');
+	for(var i=0; i<currentChatArray.length; i++) {
+		$('#chat-window').append(currentChatArray[i] + '\n');
+	}
 }
