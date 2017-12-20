@@ -382,6 +382,10 @@ function determineWinner() {
 			displayYouWinResult(); 
 
 			updatePlayerWins(currentPlayer);
+		} else if(winner === 'Tie') {
+			setTurnMessage('Awww snap, you tied!');
+
+			displayTieResult();
 		} else {
 			if(currentPlayer === '1') {
 				setTurnMessage(player2Obj.name + ' has beat you.  Better luck next time.');	
@@ -577,6 +581,18 @@ function displayYouWLoseResult() {
 	var img = $('<img/>');
 	img.attr('src', './assets/images/you-lose.jpg');
 	img.attr('alt', 'you lose image');
+	img.addClass('img-responsive');
+
+	$('#results-panel-body').append(img);
+}
+
+// Displays the you tied image to the results panel
+function displayTieResult() {
+	$('#results-panel-body').empty();
+
+	var img = $('<img/>');
+	img.attr('src', './assets/images/tie.jpg');
+	img.attr('alt', 'you tied image');
 	img.addClass('img-responsive');
 
 	$('#results-panel-body').append(img);
