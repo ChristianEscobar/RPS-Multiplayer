@@ -34,7 +34,7 @@
 	<br>
 
 	<div class="row">
-		<div id="player-message-continer" class="col-md-12">
+		<div id="player-message-container" class="col-md-12">
 			<span id="player-message"></span>
 			<br>
 			<span id="turn-message"></span>
@@ -73,7 +73,21 @@
   				<div id="player2-panel-footer" class="panel-footer"></div>
 			</div>
 		</div>
+		<div class="col-md-2"></div>
+	</div>
+
+	<br>
+	<br>
+
+	<div class="row">
 		<div class="col-md-1"></div>
+		<div class="col-md-9">
+			<textarea id="chat-window" readonly="true"></textarea>
+			<br>
+			<input id="chat-input" type="text"/>
+			<button id="chat-send" class="btn btn-primary btn-med" disabled="">Send</button>
+		</div>
+		<div class="col-md-2"></div>
 	</div>
 
 	<script type="text/javascript" src="assets/javascript/app.js"></script>

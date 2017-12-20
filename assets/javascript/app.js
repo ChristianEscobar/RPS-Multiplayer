@@ -20,7 +20,10 @@ var rpsImagesPos = 1;
 var currentPlayer = '0';
 // End Globals //
 
-var selectionsDisplayed = false;
+// Listens for chat send button clicks
+$('#chat-send').on('click', function(){
+	writeChatMessageToDatabase();
+});
 
 // Listens for play button clicks for a new user.
 $('#play-btn').on('click', function() {
@@ -54,20 +57,26 @@ database.ref('/players').on('child_changed', function(snapshot) {
 });
 
 // Listens to the database for children added to the root
-// Used to handle turn value 
 database.ref().on('child_added', function(snapshot){
 	if(snapshot.key === 'turn') {
 		checkWhoseTurnItIs();
+	} else if(snapshot.key === 'chat') {
+		writeChatMessageToChatWindow(snapshot);
 	}
 });
 
 // Listens to the database for children changed.
-// Used to handle turn value changes
 database.ref().on('child_changed', function(snapshot) {
 	if(snapshot.ref.key === 'turn') {
 		checkWhoseTurnItIs();	
+	} else if(snapshot.key === 'chat') {
+		writeChatMessageToChatWindow(snapshot);
 	}
 });
+
+function test(snapshot) {
+	console.log('from test(): ' + snapshot.key);
+}
 
 // Listens to the database for children removed from the /players node
 database.ref('/players').on('child_removed', function(snapshot) {
@@ -177,6 +186,9 @@ function addNewPlayer(userName) {
 
 			// Hide user name input
 			$('#user-name-container').css('display', 'none');
+
+			// Enable chat send button
+			$('#chat-send').attr('disabled', false);
 		}
 		else if(snapshot.hasChild('1') && !snapshot.hasChild('2')) {
 			// Add user as player 2
@@ -191,6 +203,9 @@ function addNewPlayer(userName) {
 
 			// Hider user name input
 			$('#user-name-container').css('display', 'none');
+
+			// Enable chat send button
+			$('#chat-send').attr('disabled', false);
 
 			// The arrival of player 2 triggers the insertion of the turn node in the database
 			updateTurnValue();
@@ -580,6 +595,7 @@ function setupNewGame() {
 	$('#results-panel-body').empty();
 }
 
+// Starts the new game countdown
 function startNewGameCountdown() {
 	var secondsRemaining = 5;
 
@@ -604,4 +620,45 @@ function startNewGameCountdown() {
 	}
 
 	intervalId = setInterval(countdown, 1000, secondsRemaining, intervalId);
+}
+
+// Writes chat message to the database
+function writeChatMessageToDatabase() {
+	database.ref().once('value')
+		.then(function(snapshot){
+			var chatMessage = $('#chat-input').val().trim();
+
+			var playerName = snapshot.child('/players/' + currentPlayer + '/name/').val();
+			
+			if(snapshot.child('/chat/' + currentPlayer).exists()) {
+				// Overwrite message in existing node
+				var messageObj = {
+					name: playerName,
+					message: chatMessage,
+				};
+
+				updateDatabaseNode('/chat/' + currentPlayer, messageObj);
+			} else {
+				// Create chat node
+				var messageObj = {
+					name: playerName,
+					message: chatMessage,
+				};
+
+				addDatabaseNode('', '/chat/' + currentPlayer, messageObj);
+			}
+
+			// Clear chat input
+			$('#chat-input').val('');
+		});
+}
+
+// Writes chate message stored in database to the chat window
+function writeChatMessageToChatWindow(snapshot) {
+	var key = Object.keys(snapshot.val())[0];
+
+	var playerName = snapshot.child('/' + key + '/name/').val();
+	var message = snapshot.child('/' + key + '/message/').val();
+
+	$('#chat-window').append(playerName + ': ' + message + '\n');
 }

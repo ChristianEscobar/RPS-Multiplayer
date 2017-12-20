@@ -15,7 +15,7 @@
 	text-align: center;
 }
 
-#player-message-continer {
+#player-message-container {
 	text-align: center;
 }
 
@@ -25,6 +25,17 @@
 
 #results-panel-body {
 	text-align: center;
+}
+
+#chat-window {
+	resize: none;
+	overflow: auto;
+	width: 750px;
+	height: 180px;
+}
+
+#chat-input {
+	width: 750px;
 }
 
 
