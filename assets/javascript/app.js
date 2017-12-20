@@ -116,11 +116,12 @@ $(document).on('click', '.select-btn', selectionMade);
 // Listener for refresh button
 $(window).on('beforeunload', function() {
 	// Refresh has been clicked which means player has left game
+	if(currentPlayer != '0') {
+		writeChatMessageToDatabase('has disconnected.');
 
-	writeChatMessageToDatabase('has disconnected.');
-
-	// Delete the current player from the database
-	database.ref('/players/' + currentPlayer).remove();
+		// Delete the current player from the database
+		database.ref('/players/' + currentPlayer).remove();
+	}
 });
 
 // Scrolls selections left or right
