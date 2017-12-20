@@ -3,9 +3,6 @@
 <head>
 	<title>RPS - Multiplayer</title>
 
-	<!-- Bootstrap CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
 	<!-- Custom CSS -->
 	<link rel="stylesheet" type="text/css" href="assets/css/style.css">
 
@@ -14,83 +11,96 @@
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
 	
-	<!-- Bootstrap Latest compiled and minified JavaScript -->
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 	<!-- Firebase -->
 	<script src="https://www.gstatic.com/firebasejs/4.8.0/firebase.js"></script>
+
+	<!-- Google Font -->
+	<link href="https://fonts.googleapis.com/css?family=Bangers|Frijole" rel="stylesheet">
 </head>
 <body>
-	<div id="user-name-container" class="row">
-		<div class="col-md-2"></div>
-		<div class="col-md-8">
-			<input type="text" id="user-name-input"/>
-			<input type="button" id="play-btn" class="btn btn-primary btn-med" value="Play"/>
-		</div>
-		<div class="col-md-2"></div>
-	</div>
-
-	<br>
-
-	<div class="row">
-		<div id="player-message-container" class="col-md-12">
-			<span id="player-message"></span>
-			<br>
-			<span id="turn-message"></span>
-			<br>
-			<span id="new-game-countdown"></span>
-		</div>
-	</div>
-
-	<br>
-	<br>
-
-	<div class="row">
-		<div class="col-md-1"></div>
-		<div class="col-md-3">
-			<div id="player1-panel" class="panel panel-primary">
-  				<div class="panel-heading">
-    				<h3 id="player1-panel-title" class="panel-title"></h3>
-  				</div>
-  				<div id="player1-panel-body" class="panel-body">
-  					<span>Waiting for Player 1</span>
-  				</div>
-  				<div id="player1-panel-footer" class="panel-footer"></div>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div id="title">
+					<span id="title-rps">Rock, Paper, Scissors</span><span id="title-smack"> SMACKDOWN!</span><span id="title-extra">Alpha 2 v 1.0</span>
+				</div>
 			</div>
 		</div>
 
-		<div class="col-md-3">
-			<div id="results-panel" class="panel panel-primary">
-  				<div id="results-panel-body" class="panel-body"></div>
+		<div class="row" id="user-name-container">
+			<div class="col-md-12 center-content">
+				<input type="text" id="user-name-input"/>
+				<input type="button" id="play-btn" class="btn btn-primary btn-med" value="Play"/>
 			</div>
 		</div>
 
-		<div class="col-md-3">
-			<div id="player2-panel" class="panel panel-primary">
-  				<div class="panel-heading">
-    				<h3 id="player2-panel-title" class="panel-title"></h3>
-  				</div>
-  				<div id="player2-panel-body" class="panel-body">
-  					<span>Waiting for Player 2</span>
-  				</div>
-  				<div id="player2-panel-footer" class="panel-footer"></div>
+		<br>
+
+		<div class="row">
+			<div id="player-message-container" class="col-md-12">
+				<span id="player-message"></span>
+				<br>
+				<span id="turn-message"></span>
+				<br>
+				<span id="new-game-countdown"></span>
 			</div>
 		</div>
-		<div class="col-md-2"></div>
-	</div>
 
-	<br>
-	<br>
+		<br>
+		<br>
 
-	<div class="row">
-		<div class="col-md-1"></div>
-		<div class="col-md-9">
-			<textarea id="chat-window" readonly="true"></textarea>
-			<br>
-			<input id="chat-input" type="text"/>
-			<button id="chat-send" class="btn btn-primary btn-med" disabled="">Send</button>
+		<div class="row">
+			<div class="col-md-4">
+				<div id="player1-panel" class="panel panel-primary">
+	  				<div class="panel-heading center-content">
+	    				<h3 id="player1-panel-title" class="panel-title"></h3>
+	  				</div>
+	  				<div id="player1-panel-body" class="panel-body">
+	  					<span>Waiting for Player 1</span>
+	  				</div>
+	  				<div id="player1-panel-footer" class="panel-footer center-content"></div>
+				</div>
+			</div>
+
+			<div class="col-md-4">
+				<div id="results-panel" class="panel panel-primary">
+	  				<div id="results-panel-body" class="panel-body"></div>
+				</div>
+			</div>
+
+			<div class="col-md-4">
+				<div id="player2-panel" class="panel panel-primary">
+	  				<div class="panel-heading center-content">
+	    				<h3 id="player2-panel-title" class="panel-title"></h3>
+	  				</div>
+	  				<div id="player2-panel-body" class="panel-body">
+	  					<span>Waiting for Player 2</span>
+	  				</div>
+	  				<div id="player2-panel-footer" class="panel-footer center-content"></div>
+				</div>
+			</div>
 		</div>
-		<div class="col-md-2"></div>
+
+		<br>
+		<br>
+
+		<div class="row">
+			<div class="col-md-12 center-content">
+				<textarea id="chat-window" readonly="true"></textarea>
+				<br>
+				<input id="chat-input" type="text"/>
+				<button id="chat-send" class="btn btn-primary btn-med" disabled="">Send</button>
+			</div>
+		</div>
 	</div>
 
 	<script type="text/javascript" src="assets/javascript/app.js"></script>

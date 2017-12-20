@@ -1,7 +1,8 @@
 .panel-body {
-	width: 400px;
+	width: 350px;
 	height: 340px;
 	text-align: center;
+	padding: 0;
 }
 
 .panel-heading {
@@ -18,7 +19,7 @@
 }
 
 .rps-img {
-	margin-left: 60px;
+	margin-left: 50px;
 }
 
 #player-message-container {
@@ -26,9 +27,8 @@
 }
 
 #results-panel-body {
-	width: 400px;
-	height: 420px;
-	text-align: center;
+	width: 350px;
+	height: 400px;
 }
 
 #chat-window {
@@ -42,4 +42,28 @@
 	width: 750px;
 }
 
+#title {
+	text-align: center;
+	background-image: url('../images/title-bg.png');
+}
 
+#title-rps {
+	font-family: 'Bangers', cursive;
+	font-size: 5.0em;
+}
+
+#title-smack {
+	font-family: 'Frijole', cursive;
+	font-size: 2.5em;
+	color: red;
+}
+
+#title-extra {
+	font-family: 'Bangers', cursive;
+	font-size: 1.5em;
+	color:yellow;
+}
+
+.center-content {
+	text-align: center;
+}
