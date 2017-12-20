@@ -115,8 +115,9 @@ $(document).on('click', '.select-btn', selectionMade);
 
 // Listener for refresh button
 $(window).on('beforeunload', function() {
+	console.log('beforeunload', currentPlayer);
 	// Refresh has been clicked which means player has left game
-	if(currentPlayer != '0') {
+	if(currentPlayer !== '0') {
 		writeChatMessageToDatabase('has disconnected.');
 
 		// Delete the current player from the database
