@@ -29,6 +29,14 @@ $('#chat-send').on('click', function(){
 $('#play-btn').on('click', function() {
 	var userName = $('#user-name-input').val().trim();
 
+	if(userName.length === 0) {
+		setTurnMessage('Please provide a valid user name for yourself, no anonymous play!');
+
+		return;
+	}
+
+	setTurnMessage('');
+
 	addNewPlayer(userName);
 });
 
