@@ -23,6 +23,16 @@ var currentPlayer = '0';
 // Listens for chat send button clicks
 $('#chat-send').on('click', function(){
 	writeChatMessageToDatabase('');
+
+});
+
+$('#chat-input').keypress(function(event) {
+	// Write chat message when user hits enter
+	if(event.keyCode === 13) {
+		writeChatMessageToDatabase('');
+	}
+
+	console.log(event.keyCode);
 });
 
 // Listens for play button clicks for a new user.
