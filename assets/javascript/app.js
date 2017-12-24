@@ -18,6 +18,8 @@ var rpsImages = ['./assets/images/rock.png','./assets/images/paper.png','./asset
 var rpsImagesPos = 1;
 
 var currentPlayer = '0';
+
+var totalPlayers = 0;
 // End Globals //
 
 // Listens for chat send button clicks
@@ -52,6 +54,8 @@ $('#play-btn').on('click', function() {
 
 // Listens to the database for new children on the /players node.
 database.ref('/players').on('child_added', function(snapshot) {
+	totalPlayers++;
+
 	var newPlayer = snapshot.ref.key;
 
 	var newPlayerName = snapshot.val().name;
@@ -61,6 +65,8 @@ database.ref('/players').on('child_added', function(snapshot) {
 	updatePlayerPanelHeaderAndFooter(newPlayerName, newPlayer, playerWins, playerLosses);
 
 	updatePlayerPanelBody(newPlayer, false, false, '');
+
+	updateTurnValue();
 });
 
 // Listens to the database for changes on children of the /players node
@@ -98,6 +104,8 @@ function test(snapshot) {
 
 // Listens to the database for children removed from the /players node
 database.ref('/players').on('child_removed', function(snapshot) {
+	totalPlayers--;
+
 	// Remove the turn node
 	database.ref('/turn').remove();
 
@@ -187,13 +195,16 @@ function selectionMade() {
 function addNewPlayer(userName) {
 	database.ref('/players').once('value')
 		.then(function(snapshot) {
+		
 		var newPlayer = {
 			name: userName,
 			wins: 0,
 			losses: 0,
 		};
 
-		if(!snapshot.hasChildren()) {
+		console.log(snapshot.val());
+
+		if(!snapshot.hasChild('1')) {
 			// Add user as player 1
 			addDatabaseNode('/players', '1', newPlayer);
 
@@ -204,15 +215,13 @@ function addNewPlayer(userName) {
 			// Setup player panel
 			updatePlayerPanelHeaderAndFooter(userName, currentPlayer, 0, 0);
 
-			updatePlayerPanelBody(currentPlayer, false, false, '');
-
-			// Hide user name input
+			// Hider user name input
 			$('#user-name-container').css('display', 'none');
 
 			// Enable chat send button
 			$('#chat-send').attr('disabled', false);
 		}
-		else if(snapshot.hasChild('1') && !snapshot.hasChild('2')) {
+		else if(!snapshot.hasChild('2')) {
 			// Add user as player 2
 			addDatabaseNode('/players', '2', newPlayer);
 
@@ -228,9 +237,6 @@ function addNewPlayer(userName) {
 
 			// Enable chat send button
 			$('#chat-send').attr('disabled', false);
-
-			// The arrival of player 2 triggers the insertion of the turn node in the database
-			updateTurnValue();
 		}
 		else {
 			// Two players already exist in database
@@ -244,23 +250,27 @@ function updateTurnValue() {
 	database.ref().once('value')
 		.then(function(snapshot) {
 
-		var newTurnValue = 0;
+		// Turn value should only be modified when there are two players in the game
+		if(totalPlayers === 2) {
 
-		if(snapshot.child('turn').exists()) {
-			// Read turn value, update, then write
-			var currentTurnValue = snapshot.child('turn').val();
+			var newTurnValue = 0;
 
-			newTurnValue = currentTurnValue + 1;
-		} else {
-			// Add turn value
-			newTurnValue = 1;
+			if(snapshot.child('turn').exists()) {
+				// Read turn value, update, then write
+				var currentTurnValue = snapshot.child('turn').val();
+
+				newTurnValue = currentTurnValue + 1;
+			} else {
+				// Add turn value
+				newTurnValue = 1;
+			}
+
+			var turnObj = {
+				turn: newTurnValue,
+			};
+
+			updateDatabaseNode('', turnObj);
 		}
-
-		var turnObj = {
-			turn: newTurnValue,
-		};
-
-		updateDatabaseNode('', turnObj);
 
 	});
 }
@@ -579,6 +589,8 @@ function updatePlayerPanelBody(player, displayScrollableImages, displayStaticIma
 	} else {
 		$(panelBodyId).text(message);
 	}	
+
+	$(panelBodyId).addClass('game-text');
 }
 
 // Displays the you win image to the results panel
